@@ -987,7 +987,7 @@ function runWheelRaffle() {
         const size = canvas.clientWidth;
         if (wheelState.velocity > 0.002) {
             wheelState.angle += wheelState.velocity;
-            wheelState.velocity *= 0.982; // Apply friction decelerator
+            wheelState.velocity *= 0.997; // Apply friction decelerator (gentler slowdown)
             
             // Check if pointer passes a boundary (for sound tick)
             const normalizedAngle = wheelState.angle % (Math.PI * 2);
