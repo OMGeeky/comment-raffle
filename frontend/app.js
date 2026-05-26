@@ -781,6 +781,13 @@ function clearComments() {
 // Drawing View Entrypoint Manager
 function initDrawingArena() {
     const style = document.getElementById('draw-style').value;
+    const countGroup = document.getElementById('draw-count-group');
+    if (style === 'cards') {
+        if (countGroup) countGroup.classList.remove('hidden');
+    } else {
+        if (countGroup) countGroup.classList.add('hidden');
+    }
+    
     if (style === 'wheel') {
         initWheelOfFortune();
     } else if (style === 'roller') {
@@ -868,9 +875,17 @@ function drawWheel(ctx, size) {
     ctx.clearRect(0, 0, size, size);
     const cx = size / 2;
     const cy = size / 2;
-    const r = size / 2 - 10;
+    const r = size / 2 - 16; // slightly more inner radius to leave space for highlighted slice protrusion
     const N = wheelState.entries.length;
     const sliceAngle = (Math.PI * 2) / N;
+    
+    // Determine currently active selected slice index facing right pointer (0 radians)
+    const normalizedAngle = wheelState.angle % (Math.PI * 2);
+    let targetLocalAngle = (0 - normalizedAngle) % (Math.PI * 2);
+    if (targetLocalAngle < 0) {
+        targetLocalAngle += Math.PI * 2;
+    }
+    const currentSelectedIdx = Math.floor(targetLocalAngle / sliceAngle) % N;
     
     ctx.save();
     ctx.translate(cx, cy);
@@ -882,14 +897,22 @@ function drawWheel(ctx, size) {
     for (let i = 0; i < N; i++) {
         const startAng = i * sliceAngle;
         const endAng = startAng + sliceAngle;
+        const isSelected = (i === currentSelectedIdx);
+        const sliceRadius = isSelected ? r + 8 : r;
         
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.arc(0, 0, r, startAng, endAng);
+        ctx.arc(0, 0, sliceRadius, startAng, endAng);
         ctx.fillStyle = wheelState.colors[i];
         ctx.fill();
-        ctx.lineWidth = N > 50 ? 0.3 : 1;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        
+        if (isSelected) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.22)'; // draw overlay highlight
+            ctx.fill();
+        }
+        
+        ctx.lineWidth = isSelected ? 3 : (N > 50 ? 0.3 : 1);
+        ctx.strokeStyle = isSelected ? 'var(--accent-pink)' : 'rgba(255, 255, 255, 0.15)';
         ctx.stroke();
         
         // Draw text only if font size is reasonably readable (above 5px)
@@ -898,16 +921,18 @@ function drawWheel(ctx, size) {
             ctx.rotate(startAng + sliceAngle / 2);
             ctx.textAlign = 'right';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = '#ffffff';
-            ctx.font = `500 ${fontSize}px Outfit`;
+            
+            const activeFontSize = isSelected ? Math.max(13, fontSize * 1.5) : fontSize;
+            ctx.fillStyle = isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.8)';
+            ctx.font = isSelected ? `bold ${activeFontSize}px Outfit` : `500 ${activeFontSize}px Outfit`;
             
             // Truncate author username to fit on slice based on slice length
             let author = wheelState.entries[i].author;
-            const maxChars = Math.max(5, Math.round(r / (fontSize * 0.75)));
+            const maxChars = Math.max(5, Math.round(sliceRadius / (activeFontSize * 0.75)));
             if (author.length > maxChars) {
                 author = author.substring(0, maxChars - 2) + '..';
             }
-            ctx.fillText(author, r - 15, 0);
+            ctx.fillText(author, sliceRadius - 15, 0);
             ctx.restore();
         }
     }
@@ -949,9 +974,14 @@ function runWheelRaffle() {
     const canvas = document.getElementById('wheel-canvas');
     const ctx = canvas.getContext('2d');
     
-    let lastTickAngle = 0;
     const N = wheelState.entries.length;
     const sliceAngle = (Math.PI * 2) / N;
+    
+    const initialNormalizedAngle = wheelState.angle % (Math.PI * 2);
+    let lastTickAngle = (0 - initialNormalizedAngle) % (Math.PI * 2);
+    if (lastTickAngle < 0) {
+        lastTickAngle += Math.PI * 2;
+    }
     
     function spinAnimation() {
         const size = canvas.clientWidth;
@@ -960,15 +990,18 @@ function runWheelRaffle() {
             wheelState.velocity *= 0.982; // Apply friction decelerator
             
             // Check if pointer passes a boundary (for sound tick)
-            // Normalized rotation
-            const normalizedAngle = (wheelState.angle + Math.PI/2) % (Math.PI * 2);
-            const currentSlice = Math.floor(normalizedAngle / sliceAngle);
-            const lastSlice = Math.floor(lastTickAngle / sliceAngle);
+            const normalizedAngle = wheelState.angle % (Math.PI * 2);
+            let targetLocalAngle = (0 - normalizedAngle) % (Math.PI * 2);
+            if (targetLocalAngle < 0) {
+                targetLocalAngle += Math.PI * 2;
+            }
+            const currentSlice = Math.floor(targetLocalAngle / sliceAngle) % N;
+            const lastSlice = Math.floor(lastTickAngle / sliceAngle) % N;
             
             if (currentSlice !== lastSlice) {
                 playTickSound();
             }
-            lastTickAngle = normalizedAngle;
+            lastTickAngle = targetLocalAngle;
             
             drawWheel(ctx, size);
             requestAnimationFrame(spinAnimation);
@@ -976,9 +1009,9 @@ function runWheelRaffle() {
             wheelState.isSpinning = false;
             
             // Selection math:
-            // Calculate absolute angle facing top pointer (which is at 1.5 * PI)
+            // Calculate absolute angle facing right pointer (which is at 0 radians)
             const normalizedAngle = wheelState.angle % (Math.PI * 2);
-            let targetLocalAngle = (Math.PI * 1.5 - normalizedAngle) % (Math.PI * 2);
+            let targetLocalAngle = (0 - normalizedAngle) % (Math.PI * 2);
             if (targetLocalAngle < 0) {
                 targetLocalAngle += Math.PI * 2;
             }
@@ -1071,31 +1104,33 @@ function runRollerRaffle() {
     track.style.transition = 'none';
     track.style.top = '0px';
     
-    // Play scrolling ticks synchronized with velocity decelerating
-    let currentY = 0;
-    let velocity = 25; // initial pixels per frame
-    const friction = 0.982;
+    const duration = 5000; // 5 seconds scroll duration
+    const startTime = performance.now();
     let ticksSpanned = 0;
     
-    function scrollTick() {
-        if (velocity > 0.1) {
-            currentY += velocity;
-            velocity *= friction;
-            track.style.top = `-${currentY}px`;
-            
-            // Fire audio ticks
-            const currentItemIndex = Math.floor(currentY / 80);
-            if (currentItemIndex > ticksSpanned) {
-                playTickSound();
-                ticksSpanned = currentItemIndex;
-            }
-            
-            requestAnimationFrame(scrollTick);
+    function easeOutQuart(t) {
+        return 1 - Math.pow(1 - t, 4);
+    }
+    
+    function scrollFrame(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const currentY = targetOffset * easeOutQuart(progress);
+        track.style.top = `-${currentY}px`;
+        
+        // Fire audio ticks as we cross item boundaries
+        const currentItemIndex = Math.floor(currentY / 80);
+        if (currentItemIndex > ticksSpanned) {
+            playTickSound();
+            ticksSpanned = currentItemIndex;
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(scrollFrame);
         } else {
-            // Snap perfectly to target
-            track.style.transition = 'top 0.3s ease-out';
+            // Make sure we are aligned precisely at the end
             track.style.top = `-${targetOffset}px`;
-            
             setTimeout(() => {
                 rollerState.isScrolling = false;
                 declareWinner(winner);
@@ -1104,7 +1139,7 @@ function runRollerRaffle() {
     }
     
     // Trigger scroll animation
-    setTimeout(scrollTick, 50);
+    requestAnimationFrame(scrollFrame);
 }
 
 // ==========================================
