@@ -128,9 +128,11 @@ To configure YouTube fetching, you can set up a global Developer Key (for shared
    - `.../auth/youtube.force-ssl` (for Broad Mode)
 4. Go to **Credentials** -> **Create Credentials** -> **OAuth client ID**.
 5. Select **Web application** as the Application Type.
-6. Under **Authorized redirect URIs**, add exactly:
-   `http://127.0.0.1:8000/api/auth/youtube/callback`
+6. Under **Authorized redirect URIs**, add exactly both of the following (Google treats `localhost` and `127.0.0.1` as distinct hosts, so both must be registered to prevent mismatch errors):
+   - `http://localhost:8000/api/auth/youtube/callback`
+   - `http://127.0.0.1:8000/api/auth/youtube/callback`
 7. Click **Create** and copy the resulting **Client ID** and **Client Secret** into your `.env` file.
+9. **IMPORTANT**: Make sure the `BASE_URL` defined in your `.env` matches the exact URL you use in your browser (e.g. if you navigate to `http://localhost:8000`, your `.env` file should have `BASE_URL=http://localhost:8000`).
 
 ---
 
@@ -170,12 +172,12 @@ You **must** configure the `BASE_URL` environment variable to match your public 
 BASE_URL=https://your-domain.com
 ```
 
-### 2. Configure Google Cloud Console OAuth Callback
-Google OAuth requires that any redirect URI used in production uses secure HTTPS and matches your registered endpoints exactly:
+### 2. Configure Google Cloud Console OAuth Settings
+Google OAuth requires that you register the redirect URIs in the Google Cloud Console for the authentication flows to succeed:
 1. In the [Google Cloud Console](https://console.cloud.google.com), open your project.
 2. Go to **Credentials** -> Click your **OAuth Client ID**.
 3. Under **Authorized redirect URIs**, add your production callback:
-   `https://your-domain.com/api/auth/youtube/callback`
+   - `https://your-domain.com/api/auth/youtube/callback`
 4. Click **Save**.
 
 ### 3. HTTPS Requirement
