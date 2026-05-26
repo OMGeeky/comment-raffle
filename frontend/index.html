@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment Selector & Raffle Arena</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="glass-bg-glows">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header glass-card">
+            <div class="header-logo">
+                <i class="fa-solid fa-gift trophy-icon"></i>
+                <div>
+                    <h1>Raffle<span>Arena</span></h1>
+                    <p>Comment filter & raffle drawing studio</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="demo-toggle-btn" class="btn btn-secondary btn-icon-only" title="Toggle Demo Mode">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Demo Mode</span>
+                </button>
+                <button id="settings-open-btn" class="btn btn-secondary btn-icon-only" title="Advanced API Settings">
+                    <i class="fa-solid fa-gears"></i>
+                    <span>API Keys</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Body Grid -->
+        <main class="app-grid">
+            
+            <!-- Left Side: Source & Configuration Panel -->
+            <section class="panel-left">
+                <!-- Source URL Tabs -->
+                <div class="glass-card platform-selector-card">
+                    <h2 class="card-title"><i class="fa-solid fa-link icon-prefix"></i>Choose Platform & Link</h2>
+                    
+                    <div class="platform-tabs">
+                        <button class="platform-tab active" data-platform="youtube" id="tab-youtube">
+                            <i class="fa-brands fa-youtube"></i> YouTube
+                        </button>
+                        <button class="platform-tab" data-platform="instagram" id="tab-instagram">
+                            <i class="fa-brands fa-instagram"></i> Instagram
+                        </button>
+                        <button class="platform-tab" data-platform="tiktok" id="tab-tiktok">
+                            <i class="fa-brands fa-tiktok"></i> TikTok
+                        </button>
+                        <button class="platform-tab" data-platform="manual" id="tab-manual">
+                            <i class="fa-solid fa-keyboard"></i> Manual
+                        </button>
+                    </div>
+
+                    <div class="platform-inputs">
+                        <!-- YouTube Input -->
+                        <div class="input-group-wrapper active" id="input-group-youtube">
+                            <label for="url-youtube">YouTube Video URL or ID</label>
+                            <div class="input-with-icon">
+                                <i class="fa-brands fa-youtube input-icon yt-color"></i>
+                                <input type="text" id="url-youtube" placeholder="https://www.youtube.com/watch?v=..." />
+                            </div>
+                            
+                            <!-- Credentials Mode Selector -->
+                            <div class="yt-auth-wrapper">
+                                <label class="sub-label">Credential Option</label>
+                                <div class="auth-choices-grid auth-choices-grid-4">
+                                    <label class="auth-choice-item">
+                                        <input type="radio" name="yt-auth-type" value="shared" checked>
+                                        <span class="auth-choice-btn">Shared Key</span>
+                                    </label>
+                                    <label class="auth-choice-item">
+                                        <input type="radio" name="yt-auth-type" value="oauth_readonly">
+                                        <span class="auth-choice-btn" title="Only reads comments on your own videos.">Google (Safe)</span>
+                                    </label>
+                                    <label class="auth-choice-item">
+                                        <input type="radio" name="yt-auth-type" value="oauth_force_ssl">
+                                        <span class="auth-choice-btn" title="Reads comments on any public video.">Google (Broad)</span>
+                                    </label>
+                                    <label class="auth-choice-item">
+                                        <input type="radio" name="yt-auth-type" value="custom">
+                                        <span class="auth-choice-btn">Custom Key</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Google Login Box -->
+                            <div class="yt-oauth-box hidden" id="yt-oauth-box">
+                                <button id="yt-login-btn" class="btn btn-secondary btn-full btn-google-login">
+                                    <i class="fa-brands fa-google"></i> <span id="yt-login-btn-text">Login with Google</span>
+                                </button>
+                                
+                                <small class="helper-text auth-notice hidden" id="yt-oauth-notice-safe" style="margin-top: 10px; display: block; line-height: 1.4; color: var(--text-muted); font-size: 0.78rem;">
+                                    <i class="fa-solid fa-circle-info"></i> <strong>Safe Mode (Read-Only)</strong>: Requesting the <em>youtube.readonly</em> scope. No scary warnings will be shown, but you can only fetch comments on videos belonging to your own channel.
+                                </small>
+                                
+                                <div class="oauth-warning-box hidden" id="yt-oauth-notice-broad">
+                                    <h4><i class="fa-solid fa-triangle-exclamation"></i> Broad Permissions Required</h4>
+                                    <p>Google requires the <code>youtube.force-ssl</code> scope to fetch comment lists on videos you do not own. Because of this, Google displays a warning claiming the app can delete your channel data.</p>
+                                    <p><strong>Rest assured: this app only reads comments and never modifies or deletes any of your data.</strong> The code is 100% open-source, and you can audit it directly on <a href="https://github.com/your-username/comment-selector" target="_blank" class="github-link"><i class="fa-brands fa-github"></i> GitHub</a>.</p>
+                                </div>
+                                
+                                <div class="oauth-status-row hidden" id="yt-oauth-status">
+                                    <div class="status-indicator-wrapper">
+                                        <span class="status-dot green-dot"></span>
+                                        <span class="status-label" id="yt-oauth-status-label">Authorized via Google</span>
+                                    </div>
+                                    <button class="btn-danger-text" id="yt-logout-btn"><i class="fa-solid fa-power-off"></i> Disconnect</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instagram Input -->
+                        <div class="input-group-wrapper" id="input-group-instagram">
+                            <label for="url-instagram">Instagram Post/Reel Link or Media ID</label>
+                            <div class="input-with-icon">
+                                <i class="fa-brands fa-instagram input-icon ig-color"></i>
+                                <input type="text" id="url-instagram" placeholder="https://www.instagram.com/p/... or Media ID" />
+                            </div>
+                            <small class="helper-text">If not using keys, Demo mode is used as fallback.</small>
+                        </div>
+
+                        <!-- TikTok Input -->
+                        <div class="input-group-wrapper" id="input-group-tiktok">
+                            <label for="url-tiktok">TikTok Video Link or Video ID</label>
+                            <div class="input-with-icon">
+                                <i class="fa-brands fa-tiktok input-icon tt-color"></i>
+                                <input type="text" id="url-tiktok" placeholder="https://www.tiktok.com/@user/video/..." />
+                            </div>
+                            <small class="helper-text">If not using keys, Demo mode is used as fallback.</small>
+                        </div>
+
+                        <!-- Manual/Paste Text Area -->
+                        <div class="input-group-wrapper" id="input-group-manual">
+                            <label for="manual-paste">Paste Comments (one per line)</label>
+                            <textarea id="manual-paste" rows="5" placeholder="Format options:
+@username: Nice post!
+user_id - Great video!
+Or simply just the comment texts..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="fetch-actions-row">
+                        <button id="fetch-btn" class="btn btn-primary">
+                            <i class="fa-solid fa-cloud-arrow-down button-icon"></i>
+                            <span id="fetch-btn-text">Fetch Comments</span>
+                            <div class="spinner hidden" id="fetch-spinner"></div>
+                        </button>
+                        <button id="clear-left-btn" class="btn btn-secondary btn-danger-hover" type="button" title="Clear All Fetched Comments">
+                            <i class="fa-solid fa-trash-can"></i> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Comment Filters Card -->
+                <div class="glass-card filters-card">
+                    <h2 class="card-title"><i class="fa-solid fa-filter icon-prefix"></i>Filters</h2>
+                    
+                    <div class="form-group">
+                        <label for="filter-text">Contains Text / Phrase</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-magnifying-glass input-icon"></i>
+                            <input type="text" id="filter-text" placeholder="e.g. giveaway, entry" />
+                        </div>
+                    </div>
+
+                    <div class="filters-row-2">
+                        <div class="form-group checkbox-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="filter-case" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span class="label-text">Ignore Case</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="filter-likes">Min Likes</label>
+                            <input type="number" id="filter-likes" min="0" value="0" class="num-input" />
+                        </div>
+                    </div>
+
+                    <div class="form-group checkbox-group" style="margin-top: -4px; margin-bottom: 16px;">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="filter-unique">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="label-text">Unique Users Only</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="filter-platform">Filter by Platform Source</label>
+                        <select id="filter-platform" class="select-input">
+                            <option value="all">All Sources</option>
+                            <option value="youtube">YouTube Only</option>
+                            <option value="instagram">Instagram Only</option>
+                            <option value="tiktok">TikTok Only</option>
+                            <option value="manual">Manual Only</option>
+                        </select>
+                    </div>
+
+                    <button id="apply-filters-btn" class="btn btn-secondary btn-full">
+                        <i class="fa-solid fa-filter-list"></i> Apply Filters
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right Side: Dashboard / Draw Arena -->
+            <section class="panel-right">
+                
+                <!-- Shared Rate Limit Warning Alert -->
+                <div class="rate-limit-warning glass-card hidden" id="rate-limit-warning">
+                    <div class="warning-header-row">
+                        <i class="fa-solid fa-circle-exclamation warning-alert-icon animate-bounce"></i>
+                        <h3>Shared Rate Limit Exceeded</h3>
+                    </div>
+                    <p>The shared backend API key quota has been exhausted. You can bypass this limit immediately by switching to **Google Login** or providing a **Custom Key** in the credentials panel on the left.</p>
+                    <div class="warning-actions">
+                        <button id="warn-login-btn" class="btn btn-primary"><i class="fa-brands fa-google"></i> Google Login</button>
+                        <button id="warn-key-btn" class="btn btn-secondary"><i class="fa-solid fa-key"></i> Set Custom Key</button>
+                    </div>
+                </div>
+                
+                <!-- Metrics Summary Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon blue-glow"><i class="fa-solid fa-comments"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-label">Fetched Comments</span>
+                            <h3 class="metric-val" id="metric-total">0</h3>
+                        </div>
+                    </div>
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon purple-glow"><i class="fa-solid fa-filter"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-label">Filtered Match</span>
+                            <h3 class="metric-val" id="metric-filtered">0</h3>
+                        </div>
+                    </div>
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon pink-glow"><i class="fa-solid fa-trophy"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-label">Total Winners Drawn</span>
+                            <h3 class="metric-val" id="metric-winners">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Tabs Container -->
+                <div class="glass-card dashboard-tabs-card">
+                    <div class="dashboard-tabs">
+                        <button class="dash-tab active" data-tab="tab-list">
+                            <i class="fa-solid fa-list-ul"></i> Comments List
+                        </button>
+                        <button class="dash-tab" data-tab="tab-draw">
+                            <i class="fa-solid fa-ticket"></i> Draw Raffle
+                        </button>
+                        <button class="dash-tab" data-tab="tab-export">
+                            <i class="fa-solid fa-file-export"></i> Export Data
+                        </button>
+                    </div>
+
+                    <!-- Dashboard Tab Content Panels -->
+                    <div class="dash-contents">
+                        
+                        <!-- List View -->
+                        <div class="dash-content-panel active" id="pane-tab-list">
+                            <div class="comments-list-header">
+                                <div class="results-meta">Showing <span id="displayed-count">0</span> comments</div>
+                                <div class="comments-list-actions">
+                                    <button id="clear-list-btn" class="btn btn-danger-text"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+                                </div>
+                            </div>
+                            <div class="comments-scroll-area" id="comments-container">
+                                <div class="empty-state">
+                                    <i class="fa-regular fa-comment-dots empty-icon"></i>
+                                    <p>No comments loaded yet. Paste a link or type comments on the left, then click <strong>Fetch Comments</strong>.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Raffle Draw View -->
+                        <div class="dash-content-panel" id="pane-tab-draw">
+                            <div class="draw-setup-row">
+                                <div class="draw-setup-group">
+                                    <label for="draw-style">Drawing Style</label>
+                                    <select id="draw-style" class="select-input select-large">
+                                        <option value="wheel">🎡 Wheel of Fortune</option>
+                                        <option value="roller">🎰 Slot Raffle Roller</option>
+                                        <option value="cards">🃏 Magic Flipping Cards</option>
+                                    </select>
+                                </div>
+                                <div class="draw-setup-group">
+                                    <label for="draw-count">Number of Winners: <span id="winner-count-display">1</span></label>
+                                    <input type="range" id="draw-count" min="1" max="10" value="1" class="slider-input" />
+                                </div>
+                            </div>
+
+                            <div class="draw-arena-box">
+                                <!-- Draw Style 1: Wheel of Fortune -->
+                                <div class="draw-stage active" id="stage-wheel">
+                                    <div class="wheel-outer">
+                                        <div class="wheel-pointer"></div>
+                                        <canvas id="wheel-canvas" width="460" height="460"></canvas>
+                                    </div>
+                                    <button id="spin-wheel-btn" class="btn btn-action-glow">Spin the Wheel!</button>
+                                </div>
+
+                                <!-- Draw Style 2: Slot Raffle Roller -->
+                                <div class="draw-stage" id="stage-roller">
+                                    <div class="roller-viewport">
+                                        <div class="roller-indicator"></div>
+                                        <div class="roller-track" id="roller-track">
+                                            <!-- Dynamic items go here -->
+                                            <div class="roller-item placeholder">Ready to roll...</div>
+                                        </div>
+                                    </div>
+                                    <button id="roll-btn" class="btn btn-action-glow">Roll the Ticket!</button>
+                                </div>
+
+                                <!-- Draw Style 3: Magic Flipping Cards -->
+                                <div class="draw-stage" id="stage-cards">
+                                    <p class="cards-instructions">Click a card to reveal a raffle winner!</p>
+                                    <div class="cards-grid" id="cards-grid">
+                                        <!-- Dynamic cards go here -->
+                                    </div>
+                                    <button id="reset-cards-btn" class="btn btn-secondary">Shuffle & Deal Cards</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Export / Manage Data View -->
+                        <div class="dash-content-panel" id="pane-tab-export">
+                            <div class="export-options-grid">
+                                <div class="export-card glass-card">
+                                    <i class="fa-solid fa-file-csv export-icon csv-color"></i>
+                                    <h3>Download CSV</h3>
+                                    <p>Export all loaded & filtered comments into a standard CSV format compatible with Excel and Google Sheets.</p>
+                                    <button id="export-csv-btn" class="btn btn-secondary btn-full">Download CSV</button>
+                                </div>
+
+                                <div class="export-card glass-card">
+                                    <i class="fa-solid fa-file-code export-icon json-color"></i>
+                                    <h3>Download JSON</h3>
+                                    <p>Download comments as a raw JSON file containing metadata like avatars, timestamps, and platforms.</p>
+                                    <button id="export-json-btn" class="btn btn-secondary btn-full">Download JSON</button>
+                                </div>
+
+                                <div class="export-card glass-card">
+                                    <i class="fa-solid fa-clipboard export-icon clipboard-color"></i>
+                                    <h3>Copy to Clipboard</h3>
+                                    <p>Quickly copy comments list as plain text in formatted string to paste into emails or other spreadsheets.</p>
+                                    <button id="copy-clipboard-btn" class="btn btn-secondary btn-full">Copy Comments</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal: API Settings -->
+    <div class="modal-overlay hidden" id="modal-settings">
+        <div class="modal-card glass-card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-key header-icon"></i>Advanced API Keys</h2>
+                <button class="modal-close-btn" id="settings-close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-info-text">Enter your personal API developer keys/tokens below. These details are stored locally in your browser's secure cache (localStorage) and never uploaded to any database.</p>
+                
+                <div class="form-group">
+                    <label for="key-youtube">YouTube Data API v3 Key</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-key input-icon"></i>
+                        <input type="password" id="key-youtube" placeholder="AIzaSy..." />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="token-instagram">Instagram Graph Access Token</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-key input-icon"></i>
+                        <input type="password" id="token-instagram" placeholder="EAACW..." />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="token-tiktok">TikTok Access Token</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-key input-icon"></i>
+                        <input type="password" id="token-tiktok" placeholder="act.tiktok..." />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger-text" id="settings-clear-btn"><i class="fa-solid fa-trash"></i> Clear Stored Keys</button>
+                <button class="btn btn-primary" id="settings-save-btn">Save Configurations</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Winner Announcement Overlay -->
+    <div class="modal-overlay winner-overlay hidden" id="modal-winner">
+        <div class="modal-card winner-card glass-card">
+            <div class="winner-header">
+                <i class="fa-solid fa-crown crown-icon animate-bounce"></i>
+                <h2>RAFFLE WINNER DRAWN!</h2>
+            </div>
+            <div class="winner-body">
+                <div class="winner-avatar-container">
+                    <img id="winner-avatar" src="" alt="Winner profile pic">
+                </div>
+                <h3 class="winner-name" id="winner-name">@username</h3>
+                <div class="winner-comment-box">
+                    <i class="fa-solid fa-quote-left quote-icon"></i>
+                    <p class="winner-text" id="winner-text">"Wow, I need to try this ASAP! 😮"</p>
+                </div>
+                <div class="winner-meta">
+                    <span id="winner-likes"><i class="fa-regular fa-thumbs-up"></i> 15 Likes</span>
+                    <span id="winner-platform"><i class="fa-brands fa-youtube"></i> YouTube</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-action-glow btn-full" id="winner-close-btn">Awesome!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="/app.js"></script>
+</body>
+</html>
