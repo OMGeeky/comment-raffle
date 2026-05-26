@@ -182,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadApiKeys();
     setupEventListeners();
     updateUIForCurrentPlatform();
+    fetchGithubUrl();
 });
 
 // Load Keys from localStorage
@@ -189,7 +190,10 @@ function loadApiKeys() {
     state.youtubeAccessToken = localStorage.getItem('youtube_access_token') || '';
     
     // Load YouTube auth type radio choice
-    const storedAuthMode = localStorage.getItem('youtube_auth_mode');
+    let storedAuthMode = localStorage.getItem('youtube_auth_mode');
+    if (storedAuthMode === 'oauth') {
+        storedAuthMode = 'oauth_readonly'; // upgrade old settings
+    }
     if (storedAuthMode) {
         state.youtubeAuthMode = storedAuthMode;
         const radio = document.querySelector(`input[name="yt-auth-type"][value="${storedAuthMode}"]`);
@@ -249,10 +253,10 @@ function setupEventListeners() {
     
     // Warning banner buttons
     document.getElementById('warn-login-btn').addEventListener('click', () => {
-        const radio = document.querySelector('input[name="yt-auth-type"][value="oauth"]');
+        const radio = document.querySelector('input[name="yt-auth-type"][value="oauth_force_ssl"]');
         if (radio) radio.checked = true;
-        state.youtubeAuthMode = 'oauth';
-        localStorage.setItem('youtube_auth_mode', 'oauth');
+        state.youtubeAuthMode = 'oauth_force_ssl';
+        localStorage.setItem('youtube_auth_mode', 'oauth_force_ssl');
         updateYoutubeAuthUI();
         loginWithGoogle();
     });
@@ -397,18 +401,35 @@ function updateYoutubeAuthUI() {
     const oauthBox = document.getElementById('yt-oauth-box');
     const loginBtn = document.getElementById('yt-login-btn');
     const statusRow = document.getElementById('yt-oauth-status');
+    const safeNotice = document.getElementById('yt-oauth-notice-safe');
+    const broadNotice = document.getElementById('yt-oauth-notice-broad');
     
-    if (state.youtubeAuthMode === 'oauth') {
+    const isOAuth = state.youtubeAuthMode === 'oauth_readonly' || state.youtubeAuthMode === 'oauth_force_ssl';
+    
+    if (isOAuth) {
         oauthBox.classList.remove('hidden');
         if (state.youtubeAccessToken) {
             loginBtn.classList.add('hidden');
             statusRow.classList.remove('hidden');
+            if (safeNotice) safeNotice.classList.add('hidden');
+            if (broadNotice) broadNotice.classList.add('hidden');
         } else {
             loginBtn.classList.remove('hidden');
             statusRow.classList.add('hidden');
+            
+            // Show appropriate notice based on selection
+            if (state.youtubeAuthMode === 'oauth_readonly') {
+                if (safeNotice) safeNotice.classList.remove('hidden');
+                if (broadNotice) broadNotice.classList.add('hidden');
+            } else {
+                if (safeNotice) safeNotice.classList.add('hidden');
+                if (broadNotice) broadNotice.classList.remove('hidden');
+            }
         }
     } else {
         oauthBox.classList.add('hidden');
+        if (safeNotice) safeNotice.classList.add('hidden');
+        if (broadNotice) broadNotice.classList.add('hidden');
     }
 }
 
@@ -419,11 +440,32 @@ function loginWithGoogle() {
     const left = (window.innerWidth - width) / 2;
     const top = (window.innerHeight - height) / 2;
     
+    const mode = state.youtubeAuthMode === 'oauth_force_ssl' ? 'force-ssl' : 'readonly';
+    
     window.open(
-        '/api/auth/youtube/login',
+        `/api/auth/youtube/login?mode=${mode}`,
         'youtube_oauth_popup',
         `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes`
     );
+}
+
+// Fetch GitHub URL from server config and update DOM links dynamically
+function fetchGithubUrl() {
+    fetch('/api/config')
+        .then(response => {
+            if (!response.ok) throw new Error("Config endpoint failed");
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.github_url) {
+                document.querySelectorAll('.github-link').forEach(link => {
+                    link.href = data.github_url;
+                });
+            }
+        })
+        .catch(err => {
+            console.warn("Failed to load GitHub URL from server config, using default:", err);
+        });
 }
 
 // Google Logout Handler
@@ -514,7 +556,7 @@ async function fetchComments() {
                 alert("YouTube Data API Key is required. Please set it in Advanced Settings, or choose another credential option.");
                 return;
             }
-        } else if (state.youtubeAuthMode === 'oauth') {
+        } else if (state.youtubeAuthMode === 'oauth_readonly' || state.youtubeAuthMode === 'oauth_force_ssl') {
             access_token = state.youtubeAccessToken;
             if (!state.demoMode && !access_token) {
                 alert("Please click 'Login with Google' first to authorize comment fetching.");

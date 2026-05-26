@@ -235,6 +235,12 @@ async def api_fetch_comments(request: FetchCommentsRequest):
     except Exception as e:
         return FetchCommentsResponse(comments=[], success=False, error=str(e))
 
+@app.get("/api/config")
+async def get_config():
+    return {
+        "github_url": os.getenv("GITHUB_URL") or "https://github.com"
+    }
+
 # Mount the static frontend directory.
 # Note: Ensure the frontend directory exists before mounting.
 os.makedirs("frontend", exist_ok=True)

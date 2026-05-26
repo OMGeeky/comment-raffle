@@ -1553,5 +1553,67 @@ input:checked + .slider:before {
     box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2) !important;
 }
 
+/* 4-column layout for split YouTube auth options */
+.auth-choices-grid-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
+
+/* Prominent Warning Box for Broad OAuth Scope */
+.oauth-warning-box {
+    margin-top: 15px;
+    background: rgba(239, 68, 68, 0.08) !important;
+    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.3s ease;
+}
+
+.oauth-warning-box h4 {
+    color: #f87171 !important; /* brighter red/coral */
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oauth-warning-box p {
+    font-size: 0.82rem;
+    color: var(--text-secondary) !important;
+    line-height: 1.55;
+    margin: 8px 0;
+}
+
+.oauth-warning-box p strong {
+    color: white !important;
+}
+
+.oauth-warning-box code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #fca5a5 !important;
+}
+
+.github-link {
+    color: #60a5fa !important;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.github-link:hover {
+    color: #93c5fd !important;
+    text-decoration: underline !important;
+}
+
 
 
