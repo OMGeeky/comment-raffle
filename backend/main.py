@@ -21,6 +21,7 @@ from backend.platforms.tiktok import fetch_tiktok_comments
 # Read configurations
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+BASE_URL = os.getenv("BASE_URL") or "http://127.0.0.1:8000"
 
 app = FastAPI(title="Comment Selector & Raffle API")
 
@@ -42,7 +43,7 @@ async def oauth_youtube_login(mode: str = "readonly"):
             detail="Google OAuth Client ID is not configured on the server. Please check the .env file."
         )
     
-    redirect_uri = "http://127.0.0.1:8000/api/auth/youtube/callback"
+    redirect_uri = f"{BASE_URL}/api/auth/youtube/callback"
     
     if mode == "force-ssl":
         scope = "https://www.googleapis.com/auth/youtube.force-ssl"
@@ -87,7 +88,7 @@ async def oauth_youtube_callback(code: Optional[str] = None, error: Optional[str
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
         raise HTTPException(status_code=500, detail="Google OAuth credentials are not configured on the server.")
         
-    redirect_uri = "http://127.0.0.1:8000/api/auth/youtube/callback"
+    redirect_uri = f"{BASE_URL}/api/auth/youtube/callback"
     token_url = "https://oauth2.googleapis.com/token"
     
     payload = {

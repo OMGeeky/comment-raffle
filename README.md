@@ -89,6 +89,10 @@ DEFAULT_YOUTUBE_API_KEY=your_youtube_developer_key
 GOOGLE_CLIENT_ID=your_google_oauth_client_id
 GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
 
+# Optional: Host address of the app. Set this if hosted publicly (e.g., https://my-app.com).
+# Defaults to http://127.0.0.1:8000 for local development.
+BASE_URL=http://127.0.0.1:8000
+
 # Optional: Link to your public repository. If omitted, default code links point to https://github.com
 GITHUB_URL=https://github.com/your-username/comment-selector
 ```
@@ -153,6 +157,29 @@ To fetch comments from TikTok videos, you need to configure access through the [
 2. Add the **TikTok Login Kit** and activate comment retrieval scopes.
 3. Configure your redirect URIs to handle authorization flows, and execute the token exchange to retrieve a TikTok user/client access token.
 4. Paste the resulting access token into the **TikTok Access Token** field in the app settings modal.
+
+---
+
+## Hosting & Production Deployments
+
+If you are hosting this application on a public server or custom domain (e.g. Render, Heroku, AWS, or your own VPS):
+
+### 1. Update the `BASE_URL` Environment Variable
+You **must** configure the `BASE_URL` environment variable to match your public domain address. This tells the FastAPI server where to direct users when initiating Google OAuth consent flows:
+```env
+BASE_URL=https://your-domain.com
+```
+
+### 2. Configure Google Cloud Console OAuth Callback
+Google OAuth requires that any redirect URI used in production uses secure HTTPS and matches your registered endpoints exactly:
+1. In the [Google Cloud Console](https://console.cloud.google.com), open your project.
+2. Go to **Credentials** -> Click your **OAuth Client ID**.
+3. Under **Authorized redirect URIs**, add your production callback:
+   `https://your-domain.com/api/auth/youtube/callback`
+4. Click **Save**.
+
+### 3. HTTPS Requirement
+Google OAuth 2.0 does not allow HTTP redirect URIs in production (except for `localhost`). Ensure your server has SSL/TLS certificates enabled (e.g., via Let's Encrypt, Cloudflare, or your hosting provider's automated SSL proxy).
 
 ---
 
