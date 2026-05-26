@@ -104,6 +104,58 @@ Once started, open your web browser and navigate to:
 
 ---
 
+## Platform API Key Setup Guide
+
+### 1. YouTube API (Data API v3 & OAuth 2.0)
+To configure YouTube fetching, you can set up a global Developer Key (for shared mode) and OAuth credentials (for Google Login) via the [Google Cloud Console](https://console.cloud.google.com):
+
+#### Option A: Server-Side API Key (Shared Key Mode)
+1. In the Google Cloud Console, select or create a project.
+2. Search for the **YouTube Data API v3** in the API Library and click **Enable**.
+3. Go to the **Credentials** tab on the sidebar.
+4. Click **Create Credentials** -> **API Key**.
+5. Save the generated key as `DEFAULT_YOUTUBE_API_KEY` in your server `.env` file (or paste it under "Custom Key" in the frontend settings).
+
+#### Option B: Google Sign-in OAuth Credentials
+1. Go to the **OAuth consent screen** setup in the Cloud Console.
+2. Select your User Type (e.g. *External* or *Internal* for testing), fill in app metadata, and ensure you configure test users if your app is in Sandbox/Testing mode.
+3. Enable the following scopes if prompted:
+   - `.../auth/youtube.readonly` (for Safe Mode)
+   - `.../auth/youtube.force-ssl` (for Broad Mode)
+4. Go to **Credentials** -> **Create Credentials** -> **OAuth client ID**.
+5. Select **Web application** as the Application Type.
+6. Under **Authorized redirect URIs**, add exactly:
+   `http://127.0.0.1:8000/api/auth/youtube/callback`
+7. Click **Create** and copy the resulting **Client ID** and **Client Secret** into your `.env` file.
+
+---
+
+### 2. Instagram API (Instagram Graph API)
+To fetch comments from Instagram posts or reels, you need access credentials from the [Meta for Developers Portal](https://developers.facebook.com):
+
+1. Set up a Facebook App in the Developer Portal.
+2. Make sure you have a **Facebook Page** linked to an **Instagram Professional (Creator or Business) Account**.
+3. In your Facebook App settings, add the **Instagram Graph API** product.
+4. Generate a User Access Token or Page Access Token using the **Graph API Explorer** tool.
+5. Ensure the token has the following permissions granted:
+   - `instagram_basic`
+   - `instagram_manage_comments`
+   - `pages_show_list`
+   - `pages_read_engagement`
+6. Paste the generated Access Token into the **Instagram Access Token** field in the app settings modal (accessible via the gear icon in the top header).
+
+---
+
+### 3. TikTok API (TikTok Display API)
+To fetch comments from TikTok videos, you need to configure access through the [TikTok Developers Portal](https://developers.tiktok.com):
+
+1. Register as a TikTok developer and create an app on the console.
+2. Add the **TikTok Login Kit** and activate comment retrieval scopes.
+3. Configure your redirect URIs to handle authorization flows, and execute the token exchange to retrieve a TikTok user/client access token.
+4. Paste the resulting access token into the **TikTok Access Token** field in the app settings modal.
+
+---
+
 ## Verification & Interactive Mocking (Demo Mode)
 
 If you do not have active API credentials or client IDs set up, you can still test every feature of the drawing animations, sound synthesizers, filters, and exporting:
